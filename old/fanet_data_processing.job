@@ -1,0 +1,12 @@
+#!/bin/env bash
+
+#SBATCH --job-name=test_python
+#SBATCH --time=30:00:00
+#SBATCH --mem=32000
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=64
+#SBATCH --partition=cpu1,cpu2
+
+module add python/3.10.5
+
+python fanet_data_processing_slurm.py

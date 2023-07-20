@@ -1,0 +1,4 @@
+Mean and Std Dev SINR are in dB
+[BPSK: 1, QAM64: -1]
+UAV Sending Interval: [10:-1, 20:-0.5, 40:0, 100:0.5, 1000:1]
+Output: ['Reliable':0, 'QUEUE_OVERFLOW':1, 'RETRY_LIMIT_REACHED':2, 'Delay_Exceeded':3]

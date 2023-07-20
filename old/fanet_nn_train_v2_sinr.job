@@ -1,0 +1,13 @@
+#!/bin/env bash
+
+#SBATCH --job-name=fanet_nn_train_v2_sinr
+#SBATCH --time=168:00
+#SBATCH --mem=16000
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --gres=gpu:2g.20gb:1
+#SBATCH --partition=gpu.medium
+
+module add cuda/cudnn/8.4.1 python/3.10.5
+
+python fanet_nn_train_v2_sinr_slurm.py.
