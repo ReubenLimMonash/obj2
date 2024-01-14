@@ -10,7 +10,9 @@ import math
 import os
 import pickle
 import gc 
+from tqdm import tqdm
 from datetime import datetime
+from sklearn.model_selection import train_test_split
 
 # Keras specific
 import keras
@@ -141,39 +143,34 @@ def load_train_holdout_dataset(dataset_path, link_type, video_novideo):
 
     return df_train, df_holdout
 
-def generate_train_holdout_dataset(dataset_details_csv, train_test_split=0.2):
+def generate_troughput_train_holdout_dataset(dataset_details_csv, holdout_split=0.2):
     df_dtypes = {"Horizontal_Distance": np.float32, "Height": np.int16,	"U2G_Distance": np.int32, "UAV_Sending_Interval": np.int16, "Mean_SINR": np.float32, "Std_Dev_SINR": np.float32,
                  "Modulation": 'string', "Num_Sent": np.int32, "Num_Reliable": np.int32, "Num_Delay_Excd": np.int32, "Num_Incr_Rcvd": np.int32, "Num_Q_Overflow": np.int32}
     dataset_details = pd.read_csv(dataset_details_csv, 
-                                  usecols = ["Mean_SINR", "Std_Dev_SINR", "UAV_Sending_Interval", "Modulation", "Num_Sent", "Num_Reliable", "Num_Delay_Excd",
-                                             "Num_Incr_Rcvd", "Num_Q_Overflow"],
+                                  usecols = ["Mean_SINR", "Std_Dev_SINR", "UAV_Sending_Interval", "Modulation", "Throughput", "Num_Count"],
                                   dtype=df_dtypes)
+    
+    # For each scenario, get the throughput data and split it to train and holdout 
+    scenarios = dataset_details[['Mean_SINR','Std_Dev_SINR','Modulation','UAV_Sending_Interval']].drop_duplicates()
     df_train_list = []
-    df_holdout_list= []
-    for row in dataset_details.itertuples():
-        mean_sinr = row.Mean_SINR
-        std_dev_sinr = row.Std_Dev_SINR
-        uav_send_int = row.UAV_Sending_Interval
-        modulation = row.Modulation
-        num_reliable = row.Num_Reliable
-        num_delay_excd = row.Num_Delay_Excd
-        num_incr_rcvd = row.Num_Incr_Rcvd
-        num_q_overflow = row.Num_Q_Overflow
-        reliable_packets = {"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "Reliable"}
-        delay_excd_packets = {"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "Delay_Exceeded"}
-        q_overflow_packets = {"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "QUEUE_OVERFLOW"}
-        incr_rcvd_packets = {"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "RETRY_LIMIT_REACHED"}
-        df_train_list.append(reliable_packets*math.ceil(num_reliable*(1-train_test_split)))
-        df_holdout_list.append(reliable_packets*math.floor(num_reliable*train_test_split))
-        df_train_list.append(delay_excd_packets*math.ceil(num_delay_excd*(1-train_test_split)))
-        df_holdout_list.append(delay_excd_packets*math.floor(num_delay_excd*train_test_split))
-        df_train_list.append(q_overflow_packets*math.ceil(num_q_overflow*(1-train_test_split)))
-        df_holdout_list.append(q_overflow_packets*math.floor(num_q_overflow*train_test_split))
-        df_train_list.append(incr_rcvd_packets*math.ceil(num_incr_rcvd*(1-train_test_split)))
-        df_holdout_list.append(incr_rcvd_packets*math.floor(num_incr_rcvd*train_test_split))
-
-    df_train = pd.Dataframe(df_train_list)
-    df_holdout = pd.Dataframe(df_holdout_list)
+    df_holdout_list = []
+    for scenario in tqdm(scenarios.itertuples()):
+        scenario_df = dataset_details.loc[(dataset_details["Modulation"] == scenario.Modulation) & (dataset_details["UAV_Sending_Interval"] == scenario.UAV_Sending_Interval) & 
+                          (dataset_details["Mean_SINR"] == scenario.Mean_SINR) & (dataset_details["Std_Dev_SINR"] == scenario.Std_Dev_SINR)]
+        df_list = []
+        for row in scenario_df.itertuples():
+            throughput_data = {"Mean_SINR": row.Mean_SINR, "Std_Dev_SINR": row.Std_Dev_SINR, "UAV_Sending_Interval": row.UAV_Sending_Interval, "Modulation": row.Modulation, "Throughput": row.Throughput}
+            # If Num_Count is one, just append the row to df_list
+            if row.Num_Count == 1:
+                df_list.append(throughput_data)
+            else:
+                df_list = df_list + [throughput_data.copy() for i in range(row.Num_Count)]
+        df = pd.DataFrame(df_list)
+        train, holdout = train_test_split(df, test_size=holdout_split, random_state=40, shuffle=True)
+        df_train_list.append(train)
+        df_holdout_list.append(holdout)
+    df_train = pd.concat(df_train_list)
+    df_holdout = pd.concat(df_holdout_list)
     return df_train, df_holdout
 
 
@@ -279,14 +276,22 @@ class ClearMemory(Callback):
 
 if __name__ == "__main__":
     # Training params
-    EPOCHS = 5
-    CHECKPOINT_FILEPATH = '/home/rlim0005/nn_checkpoints/throughput_predict_nn_v4_multimodulation_video_sinr_dl'
-    DATASET_PATH = "/home/rlim0005/FANET_Dataset"
+    EPOCHS = 20
+    CHECKPOINT_FILEPATH = '/home/rlim0005/nn_checkpoints/throughput_predict_nn_v4_video_sinr_dl'
+    DATASET_PATH = "/home/rlim0005/FANET_Dataset/Dataset_NP10000_MultiModulation_Hovering_Video"
+    # CHECKPOINT_FILEPATH = '/home/research-student/omnet-fanet/nn_checkpoints/throughput_video_sinr_dl_tmp'
+    # DATASET_PATH = "/media/research-student/One Touch/FANET Datasets/Dataset_NP100000_MultiModulation_Hovering_Video/Test/Test_Dataset_1_Downlink_Throughput.csv"
     LINK_TYPE = "downlink" # "uplink" / "downlink" / "video"
     VIDEO_NOVIDEO = "Video" # "NoVideo" / "Video" / "NoVideo_Part2"
 
     # Load dataset =================================================
-    df_train, df_holdout = load_train_holdout_dataset(DATASET_PATH, LINK_TYPE, VIDEO_NOVIDEO)
+    # df_train, df_holdout = load_train_holdout_dataset(DATASET_PATH, LINK_TYPE, VIDEO_NOVIDEO)
+    df_bpsk_train, df_bpsk_holdout = generate_troughput_train_holdout_dataset(os.path.join(DATASET_PATH, "BPSK/BPSK_Downlink_Throughput.csv"), holdout_split=0.2)
+    df_qpsk_train, df_qpsk_holdout = generate_troughput_train_holdout_dataset(os.path.join(DATASET_PATH, "QPSK/QPSK_Downlink_Throughput.csv"), holdout_split=0.2)
+    df_qam16_train, df_qam16_holdout = generate_troughput_train_holdout_dataset(os.path.join(DATASET_PATH, "QAM16/QAM16_Downlink_Throughput.csv"), holdout_split=0.2)
+    df_qam64_train, df_qam64_holdout = generate_troughput_train_holdout_dataset(os.path.join(DATASET_PATH, "QAM64/QAM64_Downlink_Throughput.csv"), holdout_split=0.2)
+    df_train = pd.concat([df_bpsk_train, df_qpsk_train, df_qam16_train, df_qam64_train])
+    df_holdout = pd.concat([df_bpsk_holdout, df_qpsk_holdout, df_qam16_holdout, df_qam64_holdout])
     # Normalize data
     df_train = normalize_data(df_train, columns=["Mean_SINR", "Std_Dev_SINR", "UAV_Sending_Interval", "Modulation", "Throughput"], link_type=LINK_TYPE, save_details_path=CHECKPOINT_FILEPATH)
     df_holdout = normalize_data(df_holdout, columns=["Mean_SINR", "Std_Dev_SINR", "UAV_Sending_Interval", "Modulation", "Throughput"], link_type=LINK_TYPE, save_details_path=None)
@@ -304,7 +309,7 @@ if __name__ == "__main__":
     model = build_nn_model_v4()
 
     # Load pre-trained model for finetuning
-    # model = keras.models.load_model(os.path.join(CHECKPOINT_FILEPATH, "model.004-0.2158.h5"), compile=False)
+    # model = keras.models.load_model(os.path.join(CHECKPOINT_FILEPATH, "model.002-0.3125.h5"), compile=False)
 
     # Compile the model
     model.compile(optimizer='adam', 

@@ -10,7 +10,9 @@ import math
 import os
 import pickle
 import gc 
+from tqdm import tqdm
 from datetime import datetime
+from sklearn.model_selection import train_test_split
 
 # Keras specific
 import keras
@@ -141,7 +143,7 @@ def load_train_holdout_dataset(dataset_path, link_type, video_novideo):
 
     return df_train, df_holdout
 
-def generate_train_holdout_dataset(dataset_details_csv, train_test_split=0.2):
+def generate_reliability_train_holdout_dataset(dataset_details_csv, holdout_split=0.2):
     df_dtypes = {"Horizontal_Distance": np.float32, "Height": np.int16,	"U2G_Distance": np.int32, "UAV_Sending_Interval": np.int16, "Mean_SINR": np.float32, "Std_Dev_SINR": np.float32,
                  "Modulation": 'string', "Num_Sent": np.int32, "Num_Reliable": np.int32, "Num_Delay_Excd": np.int32, "Num_Incr_Rcvd": np.int32, "Num_Q_Overflow": np.int32}
     dataset_details = pd.read_csv(dataset_details_csv, 
@@ -149,8 +151,8 @@ def generate_train_holdout_dataset(dataset_details_csv, train_test_split=0.2):
                                              "Num_Incr_Rcvd", "Num_Q_Overflow"],
                                   dtype=df_dtypes)
     df_train_list = []
-    df_holdout_list= []
-    for row in dataset_details.itertuples():
+    df_holdout_list = []
+    for row in tqdm(dataset_details.itertuples()):
         mean_sinr = row.Mean_SINR
         std_dev_sinr = row.Std_Dev_SINR
         uav_send_int = row.UAV_Sending_Interval
@@ -159,23 +161,56 @@ def generate_train_holdout_dataset(dataset_details_csv, train_test_split=0.2):
         num_delay_excd = row.Num_Delay_Excd
         num_incr_rcvd = row.Num_Incr_Rcvd
         num_q_overflow = row.Num_Q_Overflow
-        reliable_packets = {"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "Reliable"}
-        delay_excd_packets = {"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "Delay_Exceeded"}
-        q_overflow_packets = {"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "QUEUE_OVERFLOW"}
-        incr_rcvd_packets = {"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "RETRY_LIMIT_REACHED"}
-        df_train_list.append(reliable_packets*math.ceil(num_reliable*(1-train_test_split)))
-        df_holdout_list.append(reliable_packets*math.floor(num_reliable*train_test_split))
-        df_train_list.append(delay_excd_packets*math.ceil(num_delay_excd*(1-train_test_split)))
-        df_holdout_list.append(delay_excd_packets*math.floor(num_delay_excd*train_test_split))
-        df_train_list.append(q_overflow_packets*math.ceil(num_q_overflow*(1-train_test_split)))
-        df_holdout_list.append(q_overflow_packets*math.floor(num_q_overflow*train_test_split))
-        df_train_list.append(incr_rcvd_packets*math.ceil(num_incr_rcvd*(1-train_test_split)))
-        df_holdout_list.append(incr_rcvd_packets*math.floor(num_incr_rcvd*train_test_split))
 
-    df_train = pd.Dataframe(df_train_list)
-    df_holdout = pd.Dataframe(df_holdout_list)
+        if num_reliable > 1:
+            reliable_packets = pd.DataFrame({"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "Reliable"}, index=[0])
+            reliable_packets = reliable_packets.loc[reliable_packets.index.repeat(num_reliable)]
+            reliable_packets_train, reliable_packets_holdout = train_test_split(reliable_packets, test_size=holdout_split, random_state=40, shuffle=False)
+        elif num_reliable == 1:
+            reliable_packets_train = pd.DataFrame({"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "Reliable"}, index=[0])
+            reliable_packets_holdout = pd.DataFrame({})
+        else:
+            reliable_packets_train = pd.DataFrame({})
+            reliable_packets_holdout = pd.DataFrame({})
+
+        if num_delay_excd > 1:
+            delay_excd_packets = pd.DataFrame({"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "Delay_Exceeded"}, index=[0])
+            delay_excd_packets = delay_excd_packets.loc[delay_excd_packets.index.repeat(num_delay_excd)]
+            delay_excd_packets_train, delay_excd_packets_holdout = train_test_split(delay_excd_packets, test_size=holdout_split, random_state=40, shuffle=False)
+        elif num_delay_excd == 1:
+            delay_excd_packets_train = pd.DataFrame({"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "Delay_Exceeded"}, index=[0])
+            delay_excd_packets_holdout = pd.DataFrame({})
+        else:
+            delay_excd_packets_train = pd.DataFrame({})
+            delay_excd_packets_holdout = pd.DataFrame({})
+
+        if num_q_overflow > 1:
+            q_overflow_packets = pd.DataFrame({"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "QUEUE_OVERFLOW"}, index=[0])
+            q_overflow_packets = q_overflow_packets.loc[q_overflow_packets.index.repeat(num_q_overflow)]
+            q_overflow_packets_train, q_overflow_packets_holdout = train_test_split(q_overflow_packets, test_size=holdout_split, random_state=40, shuffle=False)
+        elif num_q_overflow == 1:
+            q_overflow_packets_train = pd.DataFrame({"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "QUEUE_OVERFLOW"}, index=[0])
+            q_overflow_packets_holdout = pd.DataFrame({})
+        else:
+            q_overflow_packets_train = pd.DataFrame({})
+            q_overflow_packets_holdout = pd.DataFrame({})
+
+        if num_incr_rcvd > 1:
+            incr_rcvd_packets = pd.DataFrame({"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "RETRY_LIMIT_REACHED"}, index=[0])
+            incr_rcvd_packets = incr_rcvd_packets.loc[incr_rcvd_packets.index.repeat(num_incr_rcvd)]
+            incr_rcvd_packets_train, incr_rcvd_packets_holdout = train_test_split(incr_rcvd_packets, test_size=holdout_split, random_state=40, shuffle=False)
+        elif num_incr_rcvd == 1:
+            incr_rcvd_packets_train = pd.DataFrame({"Mean_SINR": mean_sinr, "Std_Dev_SINR": std_dev_sinr, "UAV_Sending_Interval": uav_send_int, "Modulation": modulation, "Packet_State": "RETRY_LIMIT_REACHED"}, index=[0])
+            incr_rcvd_packets_holdout = pd.DataFrame({})
+        else:
+            incr_rcvd_packets_train = pd.DataFrame({})
+            incr_rcvd_packets_holdout = pd.DataFrame({})
+        df_train_list.append(pd.concat([reliable_packets_train, delay_excd_packets_train, q_overflow_packets_train, incr_rcvd_packets_train]))
+        df_holdout_list.append(pd.concat([reliable_packets_holdout, delay_excd_packets_holdout, q_overflow_packets_holdout, incr_rcvd_packets_holdout]))
+
+    df_train = pd.concat(df_train_list)
+    df_holdout = pd.concat(df_holdout_list)
     return df_train, df_holdout
-
 
 def filter_n_sort(df):
     # Filter out rows where mean / std dev of sinr is NaN
@@ -261,9 +296,9 @@ class ClearMemory(Callback):
 if __name__ == "__main__":
     # Training params
     EPOCHS = 5
-    CHECKPOINT_FILEPATH = '/home/rlim0005/nn_checkpoints/nn_v4_multimodulation_novideo_nosinr_dl'
-    DATASET_PATH = "/home/rlim0005/FANET_Dataset"
-    LINK_TYPE = "uplink" # "uplink" / "downlink" / "video"
+    CHECKPOINT_FILEPATH = '/home/wlau0003/Reuben_ws/nn_checkpoints/nn_v4_multimodulation_video_sinr_vid'
+    DATASET_PATH = "/home/wlau0003/Reuben_ws/FANET_Dataset"
+    LINK_TYPE = "video" # "uplink" / "downlink" / "video"
     VIDEO_NOVIDEO = "Video" # "NoVideo" / "Video" / "NoVideo_Part2"
 
     # Load dataset =================================================

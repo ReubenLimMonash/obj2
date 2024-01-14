@@ -745,5 +745,3 @@ if __name__ == "__main__":
     ul_delay_threshold = 0.04
     video_delay_threshold = 1
     process_sim_data_v2(sim_root_path, dl_delay_threshold=dl_delay_threshold, ul_delay_threshold=ul_delay_threshold, video_delay_threshold=video_delay_threshold, save_path=save_path)
-
-    
