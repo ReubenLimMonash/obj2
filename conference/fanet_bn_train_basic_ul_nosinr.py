@@ -32,22 +32,22 @@ df_dtypes = {"TxTime": np.float32, "U2G_Distance": np.float32, "Height": np.int1
 
 print("Loading Datasets")
 # Load training dataset ==========================================================================================================================
-ul_df_bpsk = pd.read_csv("/media/research-student/One Touch/FANET Datasets/Dataset_NP10000_MultiModulation_Hovering_NoVideo/BPSK_processed_train_uplink.csv",
+ul_df_bpsk = pd.read_csv("/media/research-student/One Touch/FANET_Dataset/Dataset_NP10000_MultiModulation_Hovering_NoVideo/BPSK_processed_train_uplink.csv",
                     usecols = ["Mean_SINR", "Std_Dev_SINR", "Num_Members", "UAV_Sending_Interval", "Packet_State", "Delay", "U2G_H_Dist", "Height"],
                     dtype=df_dtypes)
 ul_df_bpsk["Modulation"] = "BPSK"
 
-ul_df_qpsk = pd.read_csv("/media/research-student/One Touch/FANET Datasets/Dataset_NP10000_MultiModulation_Hovering_NoVideo/QPSK_processed_train_uplink.csv",
+ul_df_qpsk = pd.read_csv("/media/research-student/One Touch/FANET_Dataset/Dataset_NP10000_MultiModulation_Hovering_NoVideo/QPSK_processed_train_uplink.csv",
                     usecols = ["Mean_SINR", "Std_Dev_SINR", "Num_Members", "UAV_Sending_Interval", "Packet_State", "Delay", "U2G_H_Dist", "Height"],
                     dtype=df_dtypes)
 ul_df_qpsk["Modulation"] = "QPSK"
 
-ul_df_qam16 = pd.read_csv("/media/research-student/One Touch/FANET Datasets/Dataset_NP10000_MultiModulation_Hovering_NoVideo/QAM16_processed_train_uplink.csv",
+ul_df_qam16 = pd.read_csv("/media/research-student/One Touch/FANET_Dataset/Dataset_NP10000_MultiModulation_Hovering_NoVideo/QAM16_processed_train_uplink.csv",
                     usecols = ["Mean_SINR", "Std_Dev_SINR", "Num_Members", "UAV_Sending_Interval", "Packet_State", "Delay", "U2G_H_Dist", "Height"],
                     dtype=df_dtypes)
 ul_df_qam16["Modulation"] = "QAM16"
 
-ul_df_qam64 = pd.read_csv("/media/research-student/One Touch/FANET Datasets/Dataset_NP10000_MultiModulation_Hovering_NoVideo/QAM64_processed_train_uplink.csv",
+ul_df_qam64 = pd.read_csv("/media/research-student/One Touch/FANET_Dataset/Dataset_NP10000_MultiModulation_Hovering_NoVideo/QAM64_processed_train_uplink.csv",
                     usecols = ["Mean_SINR", "Std_Dev_SINR", "Num_Members", "UAV_Sending_Interval", "Packet_State", "Delay", "U2G_H_Dist", "Height"],
                     dtype=df_dtypes)
 ul_df_qam64["Modulation"] = "QAM64"
@@ -56,22 +56,22 @@ ul_df_train = pd.concat([ul_df_bpsk, ul_df_qpsk, ul_df_qam16, ul_df_qam64], igno
 # Load training dataset ==========================================================================================================================
 
 # Load test dataset ==========================================================================================================================
-ul_df_bpsk = pd.read_csv("/media/research-student/One Touch/FANET Datasets/Dataset_NP10000_MultiModulation_Hovering_NoVideo/BPSK_processed_holdout_uplink.csv",
+ul_df_bpsk = pd.read_csv("/media/research-student/One Touch/FANET_Dataset/Dataset_NP10000_MultiModulation_Hovering_NoVideo/BPSK_processed_holdout_uplink.csv",
                     usecols = ["Mean_SINR", "Std_Dev_SINR", "Num_Members", "UAV_Sending_Interval", "Packet_State", "Delay", "U2G_H_Dist", "Height"],
                     dtype=df_dtypes)
 ul_df_bpsk["Modulation"] = "BPSK"
 
-ul_df_qpsk = pd.read_csv("/media/research-student/One Touch/FANET Datasets/Dataset_NP10000_MultiModulation_Hovering_NoVideo/QPSK_processed_holdout_uplink.csv",
+ul_df_qpsk = pd.read_csv("/media/research-student/One Touch/FANET_Dataset/Dataset_NP10000_MultiModulation_Hovering_NoVideo/QPSK_processed_holdout_uplink.csv",
                     usecols = ["Mean_SINR", "Std_Dev_SINR", "Num_Members", "UAV_Sending_Interval", "Packet_State", "Delay", "U2G_H_Dist", "Height"],
                     dtype=df_dtypes)
 ul_df_qpsk["Modulation"] = "QPSK"
 
-ul_df_qam16 = pd.read_csv("/media/research-student/One Touch/FANET Datasets/Dataset_NP10000_MultiModulation_Hovering_NoVideo/QAM16_processed_holdout_uplink.csv",
+ul_df_qam16 = pd.read_csv("/media/research-student/One Touch/FANET_Dataset/Dataset_NP10000_MultiModulation_Hovering_NoVideo/QAM16_processed_holdout_uplink.csv",
                     usecols = ["Mean_SINR", "Std_Dev_SINR", "Num_Members", "UAV_Sending_Interval", "Packet_State", "Delay", "U2G_H_Dist", "Height"],
                     dtype=df_dtypes)
 ul_df_qam16["Modulation"] = "QAM16"
 
-ul_df_qam64 = pd.read_csv("/media/research-student/One Touch/FANET Datasets/Dataset_NP10000_MultiModulation_Hovering_NoVideo/QAM64_processed_holdout_uplink.csv",
+ul_df_qam64 = pd.read_csv("/media/research-student/One Touch/FANET_Dataset/Dataset_NP10000_MultiModulation_Hovering_NoVideo/QAM64_processed_holdout_uplink.csv",
                     usecols = ["Mean_SINR", "Std_Dev_SINR", "Num_Members", "UAV_Sending_Interval", "Packet_State", "Delay", "U2G_H_Dist", "Height"],
                     dtype=df_dtypes)
 ul_df_qam64["Modulation"] = "QAM64"

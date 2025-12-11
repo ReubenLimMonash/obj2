@@ -34,7 +34,7 @@ def cpt_probs_freq(df, child, parents):
         return None 
 
 # Load classes_df for later parts (if previous part not run)
-classes_df = pd.read_hdf("/media/research-student/One Touch/FANET Datasets/Dataset_NP10000_BPSK_6-5Mbps/classes_df_downlink.h5", 'Downlink')
+classes_df = pd.read_hdf("/media/research-student/One Touch/FANET_Dataset/Dataset_NP10000_BPSK_6-5Mbps/classes_df_downlink.h5", 'Downlink')
 
 import pandas as pd # for data manipulation 
 import numpy as np
@@ -67,7 +67,7 @@ def cpt_probs_freq(df, child, parents):
         return None 
 
 # Load classes_df for later parts (if previous part not run)
-classes_df = pd.read_hdf("/media/research-student/One Touch/FANET Datasets/Dataset_NP10000_BPSK_6-5Mbps/classes_df_downlink.h5", 'Downlink')
+classes_df = pd.read_hdf("/media/research-student/One Touch/FANET_Dataset/Dataset_NP10000_BPSK_6-5Mbps/classes_df_downlink.h5", 'Downlink')
 
 label_encoder = preprocessing.LabelEncoder()
 
