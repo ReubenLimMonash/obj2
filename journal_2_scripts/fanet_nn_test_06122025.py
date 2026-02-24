@@ -134,9 +134,9 @@ if __name__ == "__main__":
                                         1.62717176597833] # Video
     
     # Test datasets from Cell 3 of fanet_nn_test_08102025.ipynb
-    TEST_DATASETS_GT = ["/media/research-student/DataDrive/FANET_Dataset/complete_testing_dmax_dataset/data_processed_complete/Downlink_Reliability.csv",
-                        "/media/research-student/DataDrive/FANET_Dataset/complete_testing_dmax_dataset/data_processed_complete/Uplink_Reliability.csv",
-                        "/media/research-student/DataDrive/FANET_Dataset/complete_testing_dmax_dataset/data_processed_complete/Video_Reliability.csv"]
+    TEST_DATASETS_GT = ["/media/research-student/DataDrive/FANET_Dataset/Dataset_NP100000_DJISpark/complete_testing_dmax_dataset/data_processed_complete/Downlink_Reliability.csv",
+                        "/media/research-student/DataDrive/FANET_Dataset/Dataset_NP100000_DJISpark/complete_testing_dmax_dataset/data_processed_complete/Uplink_Reliability.csv",
+                        "/media/research-student/DataDrive/FANET_Dataset/Dataset_NP100000_DJISpark/complete_testing_dmax_dataset/data_processed_complete/Video_Reliability.csv"]
     
     SAVE_PATH_COMBINED = "fanet_nn_predictions_results_06122025.csv"
     

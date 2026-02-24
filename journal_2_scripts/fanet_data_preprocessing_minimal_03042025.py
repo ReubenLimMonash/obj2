@@ -236,28 +236,17 @@ def process_scenario_v3(scenario_path, dl_delay_threshold, ul_delay_threshold, v
     <root path>/BitRate-BR_Height-Z_UAVSendingInterval-USI/Distance-D/*.csv"
     NOTE: If vid_delay_threshold = 0 (default), then the script will consider no video data to process!!!
     '''
-    # TODO: Revert tis script to its original
-    # scenario = scenario_path.split("/")[-2]
-    # distance_str = scenario_path.split("/")[-1]
-    # print(scenario, distance_str)
-    
-    # scenario_files = glob.glob("{}/*.csv".format(scenario_path)) # Get list of csv files belonging to this scenario
-    # scenario_params = scenario.split('_')
-    # bitrate = float([param for param in scenario_params if ("BitRate" in param)][0].split('-')[-1])
-    # height = int([param for param in scenario_params if ("Height" in param)][0].split('-')[-1]) 
-    # uav_sending_interval = float([param for param in scenario_params if ("UAVSendingInterval" in param)][0].split('-')[-1])
-    # h_dist = float(distance_str.split('-')[-1])
 
-    # NOTE: Temporary measure
-    scenario = scenario_path.split("/")[-1]
-    print(scenario)
+    scenario = scenario_path.split("/")[-2]
+    distance_str = scenario_path.split("/")[-1]
+    print(scenario, distance_str)
     
     scenario_files = glob.glob("{}/*.csv".format(scenario_path)) # Get list of csv files belonging to this scenario
     scenario_params = scenario.split('_')
     bitrate = float([param for param in scenario_params if ("BitRate" in param)][0].split('-')[-1])
     height = int([param for param in scenario_params if ("Height" in param)][0].split('-')[-1]) 
     uav_sending_interval = float([param for param in scenario_params if ("UAVSendingInterval" in param)][0].split('-')[-1])
-    h_dist = float([param for param in scenario_params if ("Distance" in param)][0].split('-')[-1])
+    h_dist = float(distance_str.split('-')[-1])
 
     # Calculate the mean and std dev of SINR for this scenario
     mean_sinr, std_dev_sinr = sinr_lognormal_approx(h_dist, height, env='suburban')
@@ -332,9 +321,7 @@ def process_sim_data_v3(sim_root_path, dl_delay_threshold, ul_delay_threshold, v
     dl_results = [[], [], [], [], [], [], [], []] # The number of lists in here have to equal the number of UAVs
     vid_results = []
     with Pool(num_workers) as pool:
-        # TODO: Revert to original after
-        # for result in pool.starmap(process_scenario_v3, zip(scenario_dist_list, repeat(dl_delay_threshold), repeat(ul_delay_threshold), repeat(vid_delay_threshold))):
-        for result in pool.starmap(process_scenario_v3, zip(scenario_list, repeat(dl_delay_threshold), repeat(ul_delay_threshold), repeat(vid_delay_threshold))):
+        for result in pool.starmap(process_scenario_v3, zip(scenario_dist_list, repeat(dl_delay_threshold), repeat(ul_delay_threshold), repeat(vid_delay_threshold))):
             ul_results.append(result[0])
             for j in range(len(dl_results)):
                 dl_results[j].append(result[j+1])
@@ -361,8 +348,8 @@ if __name__ == "__main__":
     '''
     MAKE SURE TO SET "GX_GCS" and "sending_interval_range" in function process_sim_data_v2
     '''
-    sim_root_path = "/media/research-student/DataDrive/FANET_Dataset/complete_testing_dmax_dataset/data"
-    save_path = "/media/research-student/DataDrive/FANET_Dataset/complete_testing_dmax_dataset/data_processed"
+    sim_root_path = "/media/research-student/DataDrive/FANET_Dataset/Dataset_NP100000_DJISpark/drop_region/data/"
+    save_path = "/media/research-student/DataDrive/FANET_Dataset/Dataset_NP100000_DJISpark/drop_region/data_processed_2"
     # sim_root_path = "/home/clow0003/Reuben_ws/FANET_Dataset/Dataset_NP100000_DJISpark/train_dataset_mar25"
     # save_path = "/home/clow0003/Reuben_ws/FANET_Dataset/Dataset_NP100000_DJISpark/train_dataset_mar25_processed"
     if not os.path.isdir(save_path):

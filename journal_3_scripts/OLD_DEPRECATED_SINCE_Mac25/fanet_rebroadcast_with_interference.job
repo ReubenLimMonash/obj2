@@ -1,0 +1,10 @@
+#!/bin/env bash
+
+#SBATCH --job-name=fanet_rebroadcast_with_interference
+#SBATCH --time=168:00:00
+#SBATCH --mem=64000
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=64
+#SBATCH --partition=cpu1.medm,cpu2.largem
+
+opp_runall -j64 ../src/fanet -m -u Cmdenv -c Throughput_Based_Prob_no_GCS -n .:../src:../../inet4.5/examples:../../inet4.5/showcases:../../inet4.5/src:../../inet4.5/tests/validation:../../inet4.5/tests/networks:../../inet4.5/tutorials --image-path=../../inet4.5/images -l ../../inet4.5/src/INET --cmdenv-redirect-output=false --record-eventlog=false --scalar-recording=false --vector-recording=false --cmdenv-express-mode=true --cmdenv-stop-batch-on-error=true fanet_rebroadcast_with_interference.ini
