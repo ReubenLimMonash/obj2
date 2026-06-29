@@ -348,8 +348,8 @@ if __name__ == "__main__":
     '''
     MAKE SURE TO SET "GX_GCS" and "sending_interval_range" in function process_sim_data_v2
     '''
-    sim_root_path = "/media/research-student/DataDrive/FANET_Dataset/Dataset_NP100000_DJISpark/drop_region/data/"
-    save_path = "/media/research-student/DataDrive/FANET_Dataset/Dataset_NP100000_DJISpark/drop_region/data_processed_2"
+    sim_root_path = "/media/research-student/DataDrive/FANET_Dataset/Dataset_NP100000_DJISpark/refine_cliff_dist_0.1m/test_data/"
+    save_path = "/media/research-student/DataDrive/FANET_Dataset/Dataset_NP100000_DJISpark/refine_cliff_dist_0.1m/test_data_processed_batch2/"
     # sim_root_path = "/home/clow0003/Reuben_ws/FANET_Dataset/Dataset_NP100000_DJISpark/train_dataset_mar25"
     # save_path = "/home/clow0003/Reuben_ws/FANET_Dataset/Dataset_NP100000_DJISpark/train_dataset_mar25_processed"
     if not os.path.isdir(save_path):
@@ -360,3 +360,4 @@ if __name__ == "__main__":
     vid_delay_threshold = 1 # NOTE: Set to zero if no video data
     process_sim_data_v3(sim_root_path, dl_delay_threshold=dl_delay_threshold, ul_delay_threshold=ul_delay_threshold, 
                         vid_delay_threshold=vid_delay_threshold, save_path=save_path, num_workers=num_workers)
+    

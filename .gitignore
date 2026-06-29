@@ -2,3 +2,4 @@
 *.joblib
 lof
 mdp_policy
+*.xml
